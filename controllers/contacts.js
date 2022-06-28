@@ -1,6 +1,6 @@
 const { NotFound, BadRequest } = require("http-errors");
 const { addContactSchema, patchContactSchema } = require("../schemas");
-const { Contact } = require("../models/contacts");
+const { Contact } = require("../models/contact");
 
 const getContacts = async (req, res, next) => {
   try {

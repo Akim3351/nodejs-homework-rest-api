@@ -1,4 +1,4 @@
-const { joiAddContactSchema, joiPatchContactSchema } = require("./contactsSchema");
+const { joiAddContactSchema, joiPatchContactSchema } = require("./contactSchema");
 
 module.exports = {
     joiAddContactSchema,
