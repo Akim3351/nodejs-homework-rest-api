@@ -80,7 +80,6 @@ const changeContact = async (req, res, next) => {
 
     const { contactId } = req.params;
     const result = await Contact.findByIdAndUpdate(contactId, req.body, { new: true });
-    console.log(result);
     if (!result) {
       throw new NotFound(`Contact with Id ${contactId} was not found!`);
     }
@@ -114,7 +113,6 @@ const changeContactStats = async (req, res, next) => {
 		}
     
     const result = await Contact.findByIdAndUpdate(contactId, req.body, { new: true });
-    console.log(result);
     if (!result) {
       throw new BadRequest();
     }
