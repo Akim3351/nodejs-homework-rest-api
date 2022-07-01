@@ -1,20 +1,13 @@
-const CreateError = require("http-errors");
+const { NotFound, BadRequest } = require("http-errors");
 const { addContactSchema, patchContactSchema } = require("../schemas");
-const {
-  listContacts,
-  getContactById,
-  removeContact,
-  addContact,
-  updateContact,
-} = require("../models/contacts");
+const { Contact } = require("../models/contact");
 
 const getContacts = async (req, res, next) => {
   try {
-    const result = await listContacts();
-    res.json({
-      data: {
-        result,
-      },
+		const contacts = await Contact.find({});
+		res.status(200).json({
+			status: "success",
+			contacts,
     });
   } catch (error) {
     next(error);
@@ -24,17 +17,17 @@ const getContacts = async (req, res, next) => {
 const getById = async (req, res, next) => {
   try {
     const { contactId } = req.params;
-    const result = await getContactById(contactId);
+    const result = await Contact.findOne({_id: contactId});
 
     if (!result) {
-      throw new CreateError(404);
+      throw new NotFound(`Contact with Id ${contactId} was not found!!`);
     }
 
-    res.json({
-      data: {
-        result,
-      },
-    });
+		res.status(200).json({
+			status: "success",
+			code: 200,
+			data: { result },
+		});
   } catch (error) {
     next(error);
   }
@@ -44,15 +37,15 @@ const addNewCont = async (req, res, next) => {
   try {
     const { error } = addContactSchema.validate(req.body);
     if (error) {
-      throw new CreateError(400, error.message);
+      throw new BadRequest();
     }
 
-    const result = await addContact(req.body);
-    res.status(201).json({
-      data: {
-        result,
-      },
-    });
+    const result = await Contact.create(req.body);
+		res.status(201).json({
+			status: "success",
+			code: 201,
+			data: { result },
+		});
   } catch (error) {
     next(error);
   }
@@ -62,15 +55,17 @@ const deleteContact = async (req, res, next) => {
   try {
     const { contactId } = req.params;
 
-    const result = await removeContact(contactId);
+    const result = await Contact.findByIdAndRemove(contactId);
 
     if (!result) {
-      throw new CreateError(404);
+      throw new NotFound(`Contact with Id ${contactId} was not found or already deleted!!`);
     }
 
-    res.json({
-      message: "Contact Deleted",
-    });
+		res.status(200).json({
+			status: "success",
+			code: 200,
+			data: { result },
+		});
   } catch (error) {
     next(error);
   }
@@ -80,48 +75,53 @@ const changeContact = async (req, res, next) => {
   try {
     const { error } = addContactSchema.validate(req.body);
     if (error) {
-      throw new CreateError(400, error.message);
+      throw new BadRequest();
     }
 
     const { contactId } = req.params;
-    const result = await updateContact(contactId, req.body);
-    console.log(result);
+    const result = await Contact.findByIdAndUpdate(contactId, req.body, { new: true });
     if (!result) {
-      const error = new Error("Not Found");
-      error.status = 404;
-      throw error;
+      throw new NotFound(`Contact with Id ${contactId} was not found!`);
     }
-    res.json({
-      data: {
-        result,
-      },
-    });
+		res.status(200).json({
+			status: "success",
+			code: 200,
+			data: { result },
+		});
   } catch (error) {
+		if (error.message.includes("validation failed")) {
+			throw new BadRequest();
+		}
     next(error);
   }
 };
 
 const changeContactStats = async (req, res, next) => {
   try {
-    const { error } = patchContactSchema.validate(req.body);
-    if (error) {
-      throw new CreateError(400, error.message);
-    }
 
     const { contactId } = req.params;
-    const result = await updateContact(contactId, req.body);
-    console.log(result);
+		const { error } = patchContactSchema.validate(req.body);
+
+    		if (error) {
+			throw new BadRequest();
+		}
+
+    const favoriteKey = "favorite" in req.body;
+
+		if (!favoriteKey) {
+			throw new NotFound("Key 'favorite' doesn`t exist");
+		}
+    
+    const result = await Contact.findByIdAndUpdate(contactId, req.body, { new: true });
     if (!result) {
-      const error = new Error("Not Found");
-      error.status = 404;
-      throw error;
+      throw new BadRequest();
     }
-    res.json({
-      data: {
-        result,
-      },
-    });
+    res.json(result);
   } catch (error) {
+    if (error.message.includes("validation failed")) {
+			throw new NotFound();
+		}
+
     next(error);
   }
 };
