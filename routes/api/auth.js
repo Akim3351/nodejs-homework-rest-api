@@ -2,12 +2,21 @@ const express = require("express");
 const authRouter = express.Router();
 
 const {
-    signUp,
-    signIn
-} = require("../../controllers/auth")
+  ctrlWrapper,
+  validation,
+  authenticate,
+} = require("../../middlewares");
 
-authRouter.post("/register", signUp);
+const { authSchema } = require("../../schemas");
 
-authRouter.post("/login", signIn);
+const {
+    signIn,
+    signOut
+} = require("../../controllers/auth");
+
+authRouter.post("/login", validation(authSchema), ctrlWrapper(signIn));
+
+authRouter.post("/logout", authenticate, ctrlWrapper(signOut));
+
 
 module.exports = authRouter;

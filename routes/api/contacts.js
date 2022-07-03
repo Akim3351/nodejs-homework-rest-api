@@ -1,6 +1,16 @@
 const express = require("express");
 const contactsRouter = express.Router();
 
+const {
+  ctrlWrapper,
+  validation,
+  authenticate,
+} = require("../../middlewares");
+
+const {
+  addContactSchema,
+  patchContactSchema
+} = require("../../schemas");
 
 const {
   getContacts,
@@ -11,16 +21,16 @@ const {
   changeContactStats
 } = require("../../controllers/contacts");
 
-contactsRouter.get("/", getContacts);
+contactsRouter.get("/", authenticate, ctrlWrapper(getContacts));
 
-contactsRouter.get("/:contactId", getById);
+contactsRouter.get("/:contactId", authenticate, validation(addContactSchema), ctrlWrapper(getById));
 
-contactsRouter.post("/",addNewCont);
+contactsRouter.post("/", authenticate, ctrlWrapper(addNewCont));
 
-contactsRouter.delete("/:contactId", deleteContact);
+contactsRouter.delete("/:contactId", authenticate, ctrlWrapper(deleteContact));
 
-contactsRouter.put("/:contactId", changeContact);
+contactsRouter.put("/:contactId", authenticate, validation(patchContactSchema), ctrlWrapper(changeContact));
 
-contactsRouter.patch("/:contactId", changeContactStats);
+contactsRouter.patch("/:contactId", authenticate, validation(patchContactSchema), ctrlWrapper(changeContactStats));
 
 module.exports = contactsRouter;
