@@ -1,6 +1,7 @@
 const Joi = require("joi");
 
 const authSchema = Joi.object({
+  
   name: Joi.string().trim(),
   email: Joi.string().email().trim().required(),
   password: Joi.string().trim().required(),
