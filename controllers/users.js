@@ -4,9 +4,12 @@ const {
 } = require("http-errors");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const fs = require("fs/promises");
+const path = require("path");
 const { authSchema } = require("../schemas");
 const { SECRET_KEY } = process.env;
 const { User } = require("../models/user");
+const avatarsDir = path.join(__dirname, "../../", "public", "avatars");
 
 const getCurrentUser = async (req, res) => {
     const {name, email} = req.user;
@@ -79,8 +82,28 @@ const updateSubscription = async (req, res) => {
 
 };
 
+
+const updateAvatar = async(req, res)=> {
+    const {path: tempUpload, originalname} = req.file;
+    const {_id: id} = req.user;
+    const imageName =  `${id}_${originalname}`;
+    try {
+        const resultUpload = path.join(avatarsDir, imageName);
+        await fs.rename(tempUpload, resultUpload);
+        const avatarURL = path.join("public", "avatars", imageName);
+        await User.findByIdAndUpdate(req.user._id, {avatarURL});
+        res.json({avatarURL});
+    } catch (error) {
+        await fs.unlink(tempUpload);
+        throw error;
+    }
+};
+
+
+
 module.exports = {
     getCurrentUser,
     signIn,
-    updateSubscription
+    updateSubscription,
+    updateAvatar
 };
