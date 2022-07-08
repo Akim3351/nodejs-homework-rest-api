@@ -3,7 +3,8 @@ const usersRouter = express.Router();
 const {
     authenticate,
     validation,
-    ctrlWrapper
+    ctrlWrapper,
+    upload
 } = require("../../middlewares");
 const { authSchema } = require("../../schemas");
 
@@ -11,6 +12,7 @@ const {
     getCurrentUser,
     updateSubscription,
     signIn,
+    updateAvatar
 } = require("../../controllers/users");
 const {
     signUp,
@@ -26,5 +28,7 @@ usersRouter.post("/logout", authenticate, ctrlWrapper(signOut));
 usersRouter.get("/current", authenticate, ctrlWrapper(getCurrentUser));
 
 usersRouter.post("/users/:userId", authenticate, ctrlWrapper(updateSubscription));
+
+usersRouter.patch("/users/avatars", authenticate, upload.single("avatar"), ctrlWrapper(updateAvatar));
 
 module.exports = usersRouter;
