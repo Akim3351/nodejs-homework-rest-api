@@ -1,7 +1,9 @@
 const { Conflict } = require("http-errors");
 const { User } = require("../models/user");
+const { sendEmail } = require("../helpers/sendEmail");
 const bcrypt = require("bcryptjs");
 const gravatar = require("gravatar");
+const { v4 } = require("uuid");
 require("dotenv").config();
 
 
@@ -12,16 +14,27 @@ const signUp = async (req, res) => {
         throw new Conflict("Email in use");
     }
 
+    const verificationToken = v4();
     const hashPassword = bcrypt.hashSync(password, bcrypt.genSaltSync(10));
-    const result = await User.create({name, email, password: hashPassword, subscription: "starter", avatarURL: gravatar.url(email),
+    const result = await User.create({name, email, password: hashPassword, subscription: "starter", avatarURL: gravatar.url(email), verificationToken
 });
-    res.status(201).json({
+
+    const mail = {
+        to: email,
+        subject: "Подтверждения email",
+        html: `<a target="_blank" href="http://localhost:3000/api/users/verify/${verificationToken}">Подтвердить email</a>`
+    };
+
+    await sendEmail(mail);
+    
+res.status(201).json({
         status: "success",
         code: 201,
         data: {user: {
             email: result.email,
             subscription: result.subscription,
             avatar: result.avatarURL,
+            verificationToken,
         }}
     })};
 

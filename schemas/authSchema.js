@@ -7,6 +7,8 @@ const authSchema = Joi.object({
   password: Joi.string().trim().required(),
   subscription: Joi.string().default("starter").valid("starter", "pro", "business").trim(),
   token: [Joi.string(), Joi.number()],
+  verify: Joi.boolean().required(),
+  verificationToken: [Joi.string(), Joi.number()]
 });
 
 module.exports = {
