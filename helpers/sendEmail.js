@@ -5,13 +5,18 @@ const {META_PASSWORD} = process.env;
 
 const nodemailerConfig = {
     host: "smtp.meta.ua",
+<<<<<<< Updated upstream
     port: 465, 
+=======
+    port: 465, // 25, 465 и 2255
+>>>>>>> Stashed changes
     secure: true,
     auth: {
         user: "akim_grakovskiy@meta.ua",
         pass: META_PASSWORD
     }
 };
+<<<<<<< Updated upstream
 const sendEmail = async (verifyToken, email) => {
     const transporter = nodemailer.createTransport(nodemailerConfig);
 
@@ -31,3 +36,17 @@ module.exports = {
 }
 
 
+=======
+
+const transporter = nodemailer.createTransport(nodemailerConfig);
+
+const sendEmail = async (data) => {
+    const email = {
+        ...data,
+        from: "akim_grakovskiy@meta.ua",
+    };
+        await transporter.sendMail(email);
+}
+
+module.exports = sendEmail;
+>>>>>>> Stashed changes

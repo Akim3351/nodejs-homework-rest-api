@@ -1,6 +1,7 @@
 const {
     Unauthorized,
-    BadRequest
+    BadRequest,
+    NotFound
 } = require("http-errors");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -10,6 +11,8 @@ const { authSchema } = require("../schemas");
 const { SECRET_KEY } = process.env;
 const { User } = require("../models/user");
 const avatarsDir = path.join(__dirname, "../../", "public", "avatars");
+const { sendEmail } = require("../../helpers");
+
 
 const getCurrentUser = async (req, res) => {
     const {name, email} = req.user;
@@ -99,11 +102,66 @@ const updateAvatar = async(req, res)=> {
     }
 };
 
+const verify = async (req, res) => {
+    const { verificationToken } = req.params;
+    const user = await User.findOne({ verificationToken });
+
+    if (!user) {
+        throw new NotFound("User not found");
+    }
+
+    await User.findByIdAndUpdate(user._id, {
+        verificationToken: null,
+        verify: true,
+    });
+    res.json({
+        status: "success",
+        message: "Verification successful",
+        code: 200,
+        data: {
+            user: {
+                email: user.email,
+                subscription: user.subscription,
+            }
+        }
+    })
+};
+
+const resendEmail = async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    throw new BadRequest("missing required field email");
+  }
+  const user = await User.findOne({ email });
+  if (user.verify) {
+    throw new BadRequest("Verification has already been passed");
+  }
+
+  const userEmailcontent = {
+    to: email,
+    subject: "Email verifying",
+    html: `<a target="_blank" href="http://localhost:3000/api/users/verify/${user.verificationToken}">Confirm your email</a>`,
+  };
+  await sendEmail(userEmailcontent);
+    res.json({
+        status: "success",
+        message: "Verification email sent",
+        code: 200,
+        data: {
+            user: {
+                email: user.email,
+                subscription: user.subscription,
+            }
+        }
+    })
+};
 
 
 module.exports = {
     getCurrentUser,
     signIn,
     updateSubscription,
-    updateAvatar
+    updateAvatar,
+    verify,
+    resendEmail
 };

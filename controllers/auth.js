@@ -5,6 +5,8 @@ const bcrypt = require("bcryptjs");
 const gravatar = require("gravatar");
 const { v4 } = require("uuid");
 require("dotenv").config();
+const {sendEmail} = require("../../helpers");
+
 
 
 const signUp = async (req, res) => {
@@ -16,6 +18,7 @@ const signUp = async (req, res) => {
 
     const verificationToken = v4();
     const hashPassword = bcrypt.hashSync(password, bcrypt.genSaltSync(10));
+<<<<<<< Updated upstream
     const result = await User.create({name, email, password: hashPassword, subscription: "starter", avatarURL: gravatar.url(email), verificationToken
 });
 
@@ -28,6 +31,14 @@ const signUp = async (req, res) => {
     await sendEmail(mail);
     
 res.status(201).json({
+=======
+    const result = await User.create({name, email, password: hashPassword, subscription: "starter", avatarURL: gravatar.url(email),
+    });
+    
+    await sendEmail(email);
+
+    res.status(201).json({
+>>>>>>> Stashed changes
         status: "success",
         code: 201,
         data: {user: {
